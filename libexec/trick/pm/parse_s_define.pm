@@ -537,16 +537,18 @@ sub handle_sim_class ($$$$) {
 
     my ($unparameterized_name) = $inherit_class =~ /([^<]+)/ ;
     my @inherit_classes = split(/\s{0,}[,]\s{0,}(?:public)?\s{0,}/, $unparameterized_name);
-    my $isSimObject = 0; 
+    my $is_sim_object = 0;
+    my $sim_object_class = ""; 
     foreach my $i (@inherit_classes)
     { 
       if(exists $$sim_ref{sim_class_index}{$i}) {
-        $isSimObject = 1;
+        $is_sim_object = 1;
+        $sim_object_class = $i; 
         $$sim_ref{sim_class_index}{$class_name} = $$sim_ref{sim_class_index}{$i};
       }
     } 
     # if this class is not a SimObject pass it whole to S_Source.cpp
-    if ( $inherit_class eq "" or not($isSimObject) ) {
+    if ( $inherit_class eq "" or not($is_sim_object) ) {
         $class_contents =~ s/ZZZYYYXXX(\d+)ZZZYYYXXX/@$comments_ref[$1]/g ;
         $final_contents .= "$class_contents ;\n\n" ;
         $$sim_ref{sim_class_code} .= $final_contents ;
@@ -639,7 +641,7 @@ sub handle_sim_class ($$$$) {
     if ( $constructor_found == 1 ) {
 
         # if there is an inherited base class then the job id may reside in the base class
-        if ( $isSimObject ) {
+        if ( $sim_object_class eq "Trick::SimObject" or $sim_object_class eq "SimObject"  ) {
             $int_call_functions .= "        default:\n            trick_ret = -1 ;\n            break ;\n" ;
             $double_call_functions .= "        default:\n            trick_ret = 0.0 ;\n            break ;\n" ;
         } else {
